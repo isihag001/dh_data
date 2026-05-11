@@ -118,6 +118,7 @@
     els.saveStatus.style.color = '';
     els.recStatus.textContent = 'tap to record';
     els.recStatus.style.color = '';
+    els.nextBtn.disabled = false;
     setRecBtnState(false);
     drawIdleWave();
   }
