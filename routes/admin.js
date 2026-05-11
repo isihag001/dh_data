@@ -399,8 +399,7 @@ router.get('/recordings/:id/audio', (req, res) => {
   if (!rec.audio_path) return res.status(404).json({ error: 'No audio for this recording' });
   const fullPath = path.join(ROOT_DIR, rec.audio_path);
   if (!fs.existsSync(fullPath)) return res.status(404).json({ error: 'Audio file missing' });
-  res.setHeader('Content-Type', 'audio/webm');
-  fs.createReadStream(fullPath).pipe(res);
+  res.sendFile(fullPath);
 });
 
 router.patch('/recordings/:id/transcription', (req, res) => {
