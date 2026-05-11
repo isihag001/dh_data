@@ -1,0 +1,21 @@
+{
+  "name": "marwari-recorder",
+  "version": "1.0.0",
+  "description": "A crowdsourced Hindi to Marwari audio translation collection app for Digital Humanities research",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "multer": "^2.0.1"
+  }
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Record · Marwari Audio Collection</title>
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div class="container">
+  <div class="header" style="margin-bottom: 1rem;">
+    <div class="row row-between">
+      <a href="/" style="color: var(--muted); text-decoration: none; font-family: 'DM Mono', monospace; font-size: 12px;">← All datasets</a>
+      <div class="muted" style="font-family: 'DM Mono', monospace; font-size: 11px;" id="current-user"></div>
+    </div>
+    <div class="kicker" style="margin-top: 1rem;" id="dataset-title">Loading…</div>
+  </div>
+
+  <div id="error" class="alert alert-error" style="display:none;"></div>
+  <div id="loading" class="empty-state"><div class="spinner"></div></div>
+
+  <div id="recorder-ui" style="display:none;">
+    <div class="counter" id="counter"></div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div class="breadcrumb" id="breadcrumb"></div>
+
+    <div class="card">
+      <div class="section-label" id="context-label">Paragraph context</div>
+      <div class="hindi-text context" id="context"></div>
+      <div class="section-label" style="margin-top: 1.25rem;">Translate this sentence to Marwari</div>
+      <div class="hindi-text" id="target-sentence"></div>
+      <div class="gloss" id="gloss"></div>
+    </div>
+
+    <div class="recorder-section">
+      <div class="section-label">Record your Marwari translation (optional)</div>
+      <div class="rec-controls">
+        <button class="rec-btn" id="rec-btn" type="button" title="Record">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg>
+        </button>
+        <canvas class="wave-canvas" id="wave" width="300" height="48"></canvas>
+        <div id="rec-status" style="font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); white-space: nowrap;">tap to record</div>
+      </div>
+      <div class="playback-row" id="playback-row" style="display:none;">
+        <button id="play-btn" type="button">▶ Play back</button>
+        <button id="rerecord-btn" type="button">↻ Re-record</button>
+        <button id="discard-audio-btn" type="button">Discard audio</button>
+      </div>
+    </div>
+
+    <div class="card" style="background: var(--rec-bg);">
+      <div class="section-label">Type your Marwari translation (optional)</div>
+      <textarea id="text-translation" class="devanagari-input" rows="3" placeholder="अठै लिखो… (Type your Marwari translation here)"></textarea>
+      <div class="muted mt-1" style="font-size: 0.8rem;">
+        You can record audio, type text, or both. If you do neither, this sentence will be skipped.
+      </div>
+    </div>
+
+    <div class="row mt-1">
+      <span id="save-status" class="muted" style="font-size: 0.85rem;"></span>
+      <div class="spacer"></div>
+      <button id="next-btn" class="btn-primary" type="button">Next sentence →</button>
+    </div>
+  </div>
+
+  <div id="done-ui" class="card" style="display:none; text-align: center; padding: 3rem 1.5rem;">
+    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🙏</div>
+    <h2 style="margin-bottom: 0.5rem;">Thank you!</h2>
+    <div class="muted mb-1">Your contributions have been saved.</div>
+    <div id="summary" class="alert alert-info" style="text-align: left;"></div>
+    <a href="/" class="btn btn-primary" style="display: inline-block; text-decoration: none;">Back to datasets</a>
+  </div>
+</div>
+
+<script src="/js/recorder.js"></script>
+</body>
+</html>
