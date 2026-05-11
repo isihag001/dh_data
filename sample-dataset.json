@@ -1,0 +1,76 @@
+{
+  "id": "sample-prose",
+  "project": {
+    "title": "Sample Prose Dataset",
+    "description": "A small test dataset of Hindi prose sentences for verifying the recorder.",
+    "source_language": "Hindi",
+    "target_language": "Marwari",
+    "created_at": "2026-05-04"
+  },
+  "sentences": [
+    {
+      "id": "s001",
+      "text": "होरी ने दोनों बैलों को सानी-पानी देकर अपनी स्त्री धनिया से कहा।",
+      "gloss": "Hori, having fed and watered both bullocks, said to his wife Dhaniya.",
+      "path": ["Sample Book", "Chapter 1"],
+      "paragraph_id": "p001",
+      "sentence_index_in_paragraph": 1
+    },
+    {
+      "id": "s002",
+      "text": "गोबर को भेज दे, गाय को नाँद में बाँध आये।",
+      "gloss": "Send Gobar, he should tie the cow at the trough.",
+      "path": ["Sample Book", "Chapter 1"],
+      "paragraph_id": "p001",
+      "sentence_index_in_paragraph": 2
+    },
+    {
+      "id": "s003",
+      "text": "मैं ज़रा खेत की ओर जाता हूँ।",
+      "gloss": "I am going briefly towards the field.",
+      "path": ["Sample Book", "Chapter 1"],
+      "paragraph_id": "p001",
+      "sentence_index_in_paragraph": 3
+    },
+    {
+      "id": "s004",
+      "text": "धनिया चूल्हे के पास बैठी रोटी पका रही थी।",
+      "gloss": "Dhaniya was sitting near the stove cooking rotis.",
+      "path": ["Sample Book", "Chapter 1"],
+      "paragraph_id": "p002",
+      "sentence_index_in_paragraph": 1
+    },
+    {
+      "id": "s005",
+      "text": "उसने पति की बात सुनकर सिर हिला दिया।",
+      "gloss": "Hearing her husband's words, she nodded her head.",
+      "path": ["Sample Book", "Chapter 1"],
+      "paragraph_id": "p002",
+      "sentence_index_in_paragraph": 2
+    },
+    {
+      "id": "s006",
+      "text": "बाहर आसमान में हल्के बादल छाए हुए थे।",
+      "gloss": "Outside, light clouds were spread across the sky.",
+      "path": ["Sample Book", "Chapter 2"],
+      "paragraph_id": "p003",
+      "sentence_index_in_paragraph": 1
+    },
+    {
+      "id": "s007",
+      "text": "ठंडी हवा खेतों से होकर बह रही थी।",
+      "gloss": "A cold wind was blowing through the fields.",
+      "path": ["Sample Book", "Chapter 2"],
+      "paragraph_id": "p003",
+      "sentence_index_in_paragraph": 2
+    },
+    {
+      "id": "s008",
+      "text": "होरी ने एक लंबी साँस ली और चलने लगा।",
+      "gloss": "Hori took a long breath and started walking.",
+      "path": ["Sample Book", "Chapter 2"],
+      "paragraph_id": "p003",
+      "sentence_index_in_paragraph": 3
+    }
+  ]
+}

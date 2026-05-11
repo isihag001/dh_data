@@ -1,0 +1,9 @@
+node_modules/
+.env
+uploads/
+data/datasets/*.json
+data/recordings.json
+data/users.json
+data/datasets-index.json
+*.log
+.DS_Store
