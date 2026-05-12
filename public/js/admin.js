@@ -357,8 +357,58 @@
   });
 
   // ====== RECORDINGS (paginated) ======
-  const PAGE_SIZE       = 50;
+  const PAGE_SIZE        = 50;
   let   recordingsOffset = 0;
+  let   selectedRecIds   = new Set();
+
+  function updateBulkBar() {
+    const n = selectedRecIds.size;
+    $('bulk-count').textContent = n === 0 ? '0 selected' : `${n} selected`;
+    $('bulk-apply-btn').disabled  = n === 0 || !$('bulk-status-select').value;
+    $('bulk-delete-btn').disabled = n === 0;
+    const cbs = [...document.querySelectorAll('.rec-check')];
+    const sel = $('select-all-recs');
+    sel.indeterminate = n > 0 && n < cbs.length;
+    sel.checked       = cbs.length > 0 && n === cbs.length;
+  }
+
+  $('select-all-recs').addEventListener('change', () => {
+    document.querySelectorAll('.rec-check').forEach(cb => {
+      cb.checked = $('select-all-recs').checked;
+      if (cb.checked) selectedRecIds.add(cb.dataset.id);
+      else            selectedRecIds.delete(cb.dataset.id);
+    });
+    updateBulkBar();
+  });
+
+  $('bulk-status-select').addEventListener('change', updateBulkBar);
+
+  $('bulk-apply-btn').addEventListener('click', async () => {
+    const status = $('bulk-status-select').value;
+    if (!status || selectedRecIds.size === 0) return;
+    if (!confirm(`Set ${selectedRecIds.size} recording(s) to "${status}"?`)) return;
+    try {
+      const res = await fetch('/api/admin/recordings', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [...selectedRecIds], transcription_status: status }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      loadRecordings();
+    } catch (err) { alert('Bulk update failed: ' + err.message); }
+  });
+
+  $('bulk-delete-btn').addEventListener('click', async () => {
+    if (selectedRecIds.size === 0) return;
+    if (!confirm(`Permanently delete ${selectedRecIds.size} recording(s)? Audio files will also be removed.`)) return;
+    try {
+      const res = await fetch('/api/admin/recordings/bulk-delete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [...selectedRecIds] }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      loadRecordings();
+    } catch (err) { alert('Bulk delete failed: ' + err.message); }
+  });
 
   $('rec-filter-dataset').addEventListener('change', () => { recordingsOffset = 0; loadRecordings(); });
   $('rec-filter-user').addEventListener('change',    () => { recordingsOffset = 0; loadRecordings(); });
@@ -382,6 +432,7 @@
       const data = await res.json();
 
       if (!data.recordings || data.recordings.length === 0) {
+        $('bulk-bar').classList.remove('visible');
         list.innerHTML = '<div class="empty-state"><div class="empty-state-title">No recordings</div></div>';
         return;
       }
@@ -427,6 +478,7 @@
 
       const rows = data.recordings.map(r => `
         <div class="recording-row">
+          <input type="checkbox" class="rec-check" data-id="${escapeHtml(r.id)}" ${selectedRecIds.has(r.id) ? 'checked' : ''} />
           <div style="min-width:0;">
             <div class="text">${escapeHtml(r.source_text)}</div>
             ${r.text_translation ? `<div class="user-text">→ ${escapeHtml(r.text_translation)}</div>` : ''}
@@ -443,7 +495,18 @@
         </div>
       `).join('');
 
+      selectedRecIds = new Set();
       list.innerHTML = stats + '<div class="card" style="padding:0;">' + rows + '</div>';
+      $('bulk-bar').classList.add('visible');
+      updateBulkBar();
+
+      list.querySelectorAll('.rec-check').forEach(cb => {
+        cb.addEventListener('change', () => {
+          if (cb.checked) selectedRecIds.add(cb.dataset.id);
+          else            selectedRecIds.delete(cb.dataset.id);
+          updateBulkBar();
+        });
+      });
 
       list.querySelectorAll('button[data-action="delete-rec"]').forEach(btn => {
         btn.addEventListener('click', async () => {

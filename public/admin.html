@@ -25,7 +25,7 @@
   .filter-bar select, .filter-bar input { width: auto; flex: 1; min-width: 140px; }
 
   .recording-row {
-    display: grid; grid-template-columns: 1fr auto auto; gap: 0.75rem; align-items: center;
+    display: grid; grid-template-columns: auto 1fr auto auto; gap: 0.75rem; align-items: center;
     padding: 0.85rem 1rem; border-bottom: 0.5px solid var(--border);
   }
   .recording-row:last-child { border-bottom: none; }
@@ -115,6 +115,16 @@
 
   /* Restricted pill on dataset cards */
   .pill.restricted { background: #f3e8ff; color: #7c3aed; }
+
+  /* Bulk action bar */
+  .bulk-bar {
+    display: none; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+    padding: 0.6rem 0.85rem; background: var(--card); border: 0.5px solid var(--accent);
+    border-radius: 10px; margin-bottom: 0.6rem;
+  }
+  .bulk-bar.visible { display: flex; }
+  .bulk-bar select { width: auto; flex: none; min-width: 130px; }
+  .bulk-bar .spacer { flex: 1; }
 </style>
 </head>
 <body>
@@ -205,6 +215,22 @@
           <option value="true">Has audio</option>
           <option value="false">Text only</option>
         </select>
+      </div>
+      <div id="bulk-bar" class="bulk-bar">
+        <label style="display:flex;align-items:center;gap:0.35rem;cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" id="select-all-recs" />
+          <span style="font-family:'DM Mono',monospace;font-size:12px;">All on page</span>
+        </label>
+        <span id="bulk-count" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">0 selected</span>
+        <span class="spacer"></span>
+        <select id="bulk-status-select">
+          <option value="">Set status…</option>
+          <option value="done">Done</option>
+          <option value="pending">Pending</option>
+          <option value="needs_review">Needs review</option>
+        </select>
+        <button id="bulk-apply-btn" disabled>Apply</button>
+        <button id="bulk-delete-btn" disabled class="btn-danger">Delete selected</button>
       </div>
       <div id="recordings-pagination-top" class="pagination-bar" style="display:none;"></div>
       <div id="recordings-list"></div>

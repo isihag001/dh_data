@@ -343,6 +343,51 @@ router.get('/recordings', async (req, res) => {
   }
 });
 
+// PATCH /api/admin/recordings  — bulk transcription status update
+router.patch('/recordings', async (req, res) => {
+  const { ids, transcription_status } = req.body || {};
+  const allowed = ['pending', 'done', 'needs_review'];
+  if (!Array.isArray(ids) || ids.length === 0)
+    return res.status(400).json({ error: 'ids must be a non-empty array' });
+  if (!allowed.includes(transcription_status))
+    return res.status(400).json({ error: 'Invalid transcription_status' });
+  if (ids.length > 500)
+    return res.status(400).json({ error: 'Max 500 IDs per request' });
+  try {
+    const ph = ids.map(() => '?').join(',');
+    const [result] = await pool.execute(
+      `UPDATE recordings SET transcription_status = ?, transcription_updated_at = NOW() WHERE id IN (${ph})`,
+      [transcription_status, ...ids]
+    );
+    res.json({ ok: true, updated: result.affectedRows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/recordings/bulk-delete
+router.post('/recordings/bulk-delete', async (req, res) => {
+  const { ids } = req.body || {};
+  if (!Array.isArray(ids) || ids.length === 0)
+    return res.status(400).json({ error: 'ids must be a non-empty array' });
+  if (ids.length > 500)
+    return res.status(400).json({ error: 'Max 500 IDs per request' });
+  try {
+    const ph = ids.map(() => '?').join(',');
+    const [recs] = await pool.execute(
+      `SELECT audio_path FROM recordings WHERE id IN (${ph}) AND audio_path IS NOT NULL`, ids
+    );
+    for (const r of recs) {
+      const fp = path.join(ROOT_DIR, r.audio_path);
+      if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    }
+    const [result] = await pool.execute(`DELETE FROM recordings WHERE id IN (${ph})`, ids);
+    res.json({ ok: true, deleted: result.affectedRows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/admin/recordings/:id/audio
 router.get('/recordings/:id/audio', async (req, res) => {
   try {
