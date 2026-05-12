@@ -134,7 +134,7 @@ router.get('/datasets/:id', requireUser, async (req, res) => {
     const [sentences] = await pool.execute(
       `SELECT id, text, gloss, paragraph_id, sentence_index_in_paragraph, path_json
        FROM sentences WHERE dataset_id = ?
-       ORDER BY sentence_index_in_paragraph ASC, id ASC`,
+       ORDER BY paragraph_id ASC, sentence_index_in_paragraph ASC, id ASC`,
       [datasetId]
     );
 
