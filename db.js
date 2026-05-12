@@ -157,10 +157,10 @@ async function migrate() {
     const { recordings = [] } = JSON.parse(fs.readFileSync(recFile, 'utf-8'));
     let migrated = 0;
     for (const r of recordings) {
-      const [[{ exists }]] = await pool.execute(
-        'SELECT COUNT(*) AS exists FROM users WHERE id = ?', [r.user_id]
+      const [[row]] = await pool.execute(
+        'SELECT COUNT(*) AS n FROM users WHERE id = ?', [r.user_id]
       );
-      if (!parseInt(exists)) continue;
+      if (!parseInt(row.n)) continue;
       await pool.execute(
         `INSERT IGNORE INTO recordings
            (id, user_id, username, dataset_id, sentence_id, source_text,

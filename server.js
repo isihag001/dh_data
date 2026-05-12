@@ -98,14 +98,27 @@ app.use((err, req, res, next) => {
 // Boot
 // ---------------------------------------------------------------------------
 (async () => {
+  console.log('[boot] Starting Marwari Recorder…');
+  console.log('[boot] Env present:', {
+    MYSQL_HOST    : !!process.env.MYSQL_HOST,
+    MYSQL_USER    : !!process.env.MYSQL_USER,
+    MYSQL_PASSWORD: !!process.env.MYSQL_PASSWORD,
+    MYSQL_DATABASE: !!process.env.MYSQL_DATABASE,
+    SESSION_SECRET: !!process.env.SESSION_SECRET,
+    ADMIN_PASSWORD: !!process.env.ADMIN_PASSWORD,
+  });
+
   try {
+    console.log('[boot] Initialising schema…');
     await initSchema();
+    console.log('[boot] Schema OK. Running migration if needed…');
     await migrate();
+    console.log('[boot] Migration OK. Starting HTTP listener…');
     app.listen(PORT, () => {
-      console.log(`Marwari Recorder running on port ${PORT}`);
+      console.log(`[boot] Marwari Recorder running on port ${PORT}`);
     });
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error('[boot] FAILED:', err);
     process.exit(1);
   }
 })();
