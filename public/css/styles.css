@@ -277,7 +277,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   padding: 1.1rem 1.25rem;
   margin-bottom: 1rem;
 }
-.rec-controls { display: flex; align-items: center; gap: 1rem; }
+.rec-controls { display: flex; align-items: center; gap: 0.75rem; }
 .rec-btn {
   width: 52px; height: 52px;
   border-radius: 50%;
@@ -301,9 +301,17 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .wave-canvas {
   flex: 1;
+  min-width: 0;        /* allow canvas to shrink below its 300px intrinsic width */
   height: 48px;
   background: var(--track);
   border-radius: 8px;
+}
+#rec-status {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
 }
 .recording-time {
   font-family: 'DM Mono', monospace;
