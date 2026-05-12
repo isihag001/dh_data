@@ -41,6 +41,7 @@
     doneUi: $('done-ui'),
     currentUser: $('current-user'),
     prevBtn: $('prev-btn'),
+    updateBtn: $('update-btn'),
     title: $('dataset-title'),
     counter: $('counter'),
     progress: $('progress'),
@@ -119,14 +120,25 @@
     audioUrl = null;
     els.playbackRow.style.display = 'none';
     els.textTranslation.value = '';
-    const alreadySaved = recorded.has(s.id) || savedThisSession.has(s.id);
-    els.saveStatus.textContent = alreadySaved ? '✓ Already saved — submitting again will update it' : '';
-    els.saveStatus.style.color  = alreadySaved ? 'var(--success)' : '';
     els.recStatus.textContent = 'tap to record';
     els.recStatus.style.color = '';
     els.nextBtn.disabled = false;
     setRecBtnState(false);
     drawIdleWave();
+
+    const alreadySaved = recorded.has(s.id) || savedThisSession.has(s.id);
+    if (alreadySaved) {
+      els.saveStatus.textContent = '✓ Already saved — use Update to overwrite';
+      els.saveStatus.style.color = 'var(--success)';
+      els.updateBtn.style.display = '';
+      els.updateBtn.disabled = true;          // enabled once user enters new content
+      els.nextBtn.classList.remove('btn-primary');
+    } else {
+      els.saveStatus.textContent = '';
+      els.saveStatus.style.color = '';
+      els.updateBtn.style.display = 'none';
+      els.nextBtn.classList.add('btn-primary');
+    }
   }
 
   function setRecBtnState(isRecording) {
@@ -214,6 +226,7 @@
         els.recStatus.textContent = 'recorded ✓';
         els.playbackRow.style.display = 'flex';
         drawIdleWave();
+        refreshUpdateBtn();
       };
 
       recordingStartTime = Date.now();
@@ -249,6 +262,12 @@
     els.playbackRow.style.display = 'none';
     els.recStatus.textContent = 'tap to record';
     els.recStatus.style.color = '';
+    refreshUpdateBtn();
+  }
+
+  function refreshUpdateBtn() {
+    if (els.updateBtn.style.display === 'none') return;
+    els.updateBtn.disabled = !(audioBlob || els.textTranslation.value.trim().length > 0);
   }
 
   function rerecord() {
@@ -256,62 +275,97 @@
     toggleRecord();
   }
 
+  // Shared upload logic — POSTs current audio/text, updates stats, marks as saved.
+  // Throws on network/server error; handles 401 session-expiry internally.
+  async function saveCurrentSentence() {
+    const s       = sentences[currentIdx];
+    const text    = els.textTranslation.value.trim();
+    const hasAudio = !!audioBlob;
+    const hasText  = text.length > 0;
+    const duration = recordingStartTime && hasAudio ? (Date.now() - recordingStartTime) / 1000 : null;
+
+    const fd = new FormData();
+    fd.append('dataset_id',    datasetId);
+    fd.append('sentence_id',   s.id);
+    fd.append('source_text',   s.text);
+    fd.append('hierarchy_path', JSON.stringify(s.path || []));
+    if (s.paragraph_id) fd.append('paragraph_id', s.paragraph_id);
+    if (hasText)  fd.append('text_translation', text);
+    if (hasAudio) {
+      if (duration) fd.append('duration_seconds', duration.toFixed(2));
+      fd.append('audio', audioBlob, `${s.id}.webm`);
+    }
+
+    const res = await fetch('/api/recordings', { method: 'POST', body: fd });
+    if (res.status === 401) {
+      alert('Your session has expired. Please sign in again.');
+      window.location.href = '/';
+      throw new Error('session_expired');
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Save failed');
+
+    stats.saved++;
+    if (hasAudio && hasText) stats.both++;
+    else if (hasAudio)       stats.audio_only++;
+    else                     stats.text_only++;
+    savedThisSession.add(s.id);
+  }
+
+  // Next — for already-saved sentences just advances; for new sentences saves then advances.
   async function next() {
     const s = sentences[currentIdx];
-    const text = els.textTranslation.value.trim();
+    const alreadySaved = recorded.has(s.id) || savedThisSession.has(s.id);
+
+    if (alreadySaved) {
+      currentIdx++;
+      renderSentence();
+      return;
+    }
+
     const hasAudio = !!audioBlob;
-    const hasText = text.length > 0;
+    const hasText  = els.textTranslation.value.trim().length > 0;
 
     if (!hasAudio && !hasText) {
-      // Skip silently
       stats.skipped++;
       currentIdx++;
       renderSentence();
       return;
     }
 
-    // Upload
     els.nextBtn.disabled = true;
     els.saveStatus.innerHTML = '<span class="spinner"></span> saving…';
     els.saveStatus.style.color = '';
-
-    const duration = recordingStartTime && hasAudio ? (Date.now() - recordingStartTime) / 1000 : null;
-
-    const formData = new FormData();
-    formData.append('dataset_id', datasetId);
-    formData.append('sentence_id', s.id);
-    formData.append('source_text', s.text);
-    formData.append('hierarchy_path', JSON.stringify(s.path || []));
-    if (s.paragraph_id) formData.append('paragraph_id', s.paragraph_id);
-    if (hasText) formData.append('text_translation', text);
-    if (hasAudio) {
-      if (duration) formData.append('duration_seconds', duration.toFixed(2));
-      formData.append('audio', audioBlob, `${s.id}.webm`);
-    }
-
     try {
-      const res = await fetch('/api/recordings', { method: 'POST', body: formData });
-      if (res.status === 401) {
-        // Session expired
-        alert('Your session has expired. Please sign in again.');
-        window.location.href = '/';
-        return;
-      }
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Save failed');
-
-      stats.saved++;
-      if (hasAudio && hasText) stats.both++;
-      else if (hasAudio) stats.audio_only++;
-      else stats.text_only++;
-
-      savedThisSession.add(s.id);
+      await saveCurrentSentence();
       currentIdx++;
       renderSentence();
     } catch (err) {
-      els.saveStatus.textContent = 'Save failed: ' + err.message;
-      els.saveStatus.style.color = 'var(--warn)';
+      if (err.message !== 'session_expired') {
+        els.saveStatus.textContent = 'Save failed: ' + err.message;
+        els.saveStatus.style.color = 'var(--warn)';
+      }
       els.nextBtn.disabled = false;
+    }
+  }
+
+  // Update — explicitly overwrites the existing recording and advances.
+  async function update() {
+    els.updateBtn.disabled = true;
+    els.nextBtn.disabled   = true;
+    els.saveStatus.innerHTML = '<span class="spinner"></span> saving…';
+    els.saveStatus.style.color = '';
+    try {
+      await saveCurrentSentence();
+      currentIdx++;
+      renderSentence();
+    } catch (err) {
+      if (err.message !== 'session_expired') {
+        els.saveStatus.textContent = 'Save failed: ' + err.message;
+        els.saveStatus.style.color = 'var(--warn)';
+      }
+      els.updateBtn.disabled = false;
+      els.nextBtn.disabled   = false;
     }
   }
 
@@ -371,10 +425,12 @@
 
       els.recBtn.addEventListener('click', toggleRecord);
       els.prevBtn.addEventListener('click', prev);
+      els.updateBtn.addEventListener('click', update);
       els.nextBtn.addEventListener('click', next);
       els.playBtn.addEventListener('click', playback);
       els.rerecordBtn.addEventListener('click', rerecord);
       els.discardAudioBtn.addEventListener('click', discardAudio);
+      els.textTranslation.addEventListener('input', refreshUpdateBtn);
 
       renderSentence();
     } catch (err) {
