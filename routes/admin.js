@@ -24,6 +24,7 @@ function generateId(prefix) {
 // ---------------------------------------------------------------------------
 function requireAdmin(req, res, next) {
   if (req.session && req.session.isAdmin) return next();
+  console.warn('[auth] Not authenticated — session id:', req.sessionID, 'isAdmin:', req.session && req.session.isAdmin);
   return res.status(401).json({ error: 'Not authenticated' });
 }
 
@@ -66,7 +67,7 @@ router.get('/users', async (req, res) => {
               COUNT(r.id) AS recording_count
        FROM users u
        LEFT JOIN recordings r ON r.user_id = u.id
-       GROUP BY u.id
+       GROUP BY u.id, u.username, u.created_at
        ORDER BY u.created_at DESC`
     );
     res.json({ users });

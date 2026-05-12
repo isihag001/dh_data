@@ -18,6 +18,10 @@ const adminRoutes  = require('./routes/admin');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+// Required for Hostinger (and any reverse-proxy) so Express sees the real
+// protocol/IP from the X-Forwarded-* headers, and secure cookies work over HTTPS.
+app.set('trust proxy', 1);
+
 // ---------------------------------------------------------------------------
 // Ensure upload directory exists (data/ directories no longer needed at runtime
 // but keep them so any leftover JSON files can be used for the one-time migration)
@@ -54,14 +58,18 @@ const sessionStore = new MySQLStore({
   createDatabaseTable: true,
 });
 
+sessionStore.on('error', err => console.error('[session-store] MySQL error:', err));
+
 app.use(session({
   secret           : process.env.SESSION_SECRET || 'change-this-secret-in-production',
   store            : sessionStore,
   resave           : false,
   saveUninitialized: false,
+  proxy            : true,
   cookie: {
     maxAge  : 8 * 60 * 60 * 1000, // 8 hours
     httpOnly: true,
+    sameSite: 'lax',
     secure  : process.env.NODE_ENV === 'production',
   },
 }));
