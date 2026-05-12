@@ -234,6 +234,30 @@
   </div>
 </div>
 
+<!-- Export options modal -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal-box" style="max-height:unset;">
+    <h3 id="export-modal-title">Export dataset</h3>
+    <div class="form-row">
+      <label for="export-modal-user">User</label>
+      <select id="export-modal-user"><option value="">All users</option></select>
+    </div>
+    <div class="form-row" style="margin-top:0.6rem;">
+      <label for="export-modal-status">Transcription status</label>
+      <select id="export-modal-status">
+        <option value="">Any status</option>
+        <option value="done">Done</option>
+        <option value="pending">Pending</option>
+        <option value="needs_review">Needs review</option>
+      </select>
+    </div>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button id="export-modal-cancel">Cancel</button>
+      <a id="export-modal-download" class="btn-primary" download>Download ZIP</a>
+    </div>
+  </div>
+</div>
+
 <!-- Dataset user-access modal -->
 <div class="modal-overlay" id="access-modal">
   <div class="modal-box">

@@ -165,6 +165,21 @@ router.get('/datasets/:id', requireUser, async (req, res) => {
 // Recordings
 // ---------------------------------------------------------------------------
 
+// GET /api/recordings/progress?dataset_id=xxx  — sentence IDs already recorded by this user
+router.get('/recordings/progress', requireUser, async (req, res) => {
+  const { dataset_id } = req.query;
+  if (!dataset_id) return res.status(400).json({ error: 'dataset_id required' });
+  try {
+    const [rows] = await pool.execute(
+      'SELECT sentence_id FROM recordings WHERE user_id = ? AND dataset_id = ?',
+      [req.session.userId, dataset_id]
+    );
+    res.json({ recorded: rows.map(r => r.sentence_id) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/recordings
 router.post('/recordings', requireUser, upload.single('audio'), async (req, res) => {
   try {

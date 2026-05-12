@@ -128,7 +128,7 @@
             <div style="display:flex;gap:0.4rem;flex-direction:column;align-items:flex-end;">
               <button data-action="toggle"  data-id="${escapeHtml(d.id)}" data-visible="${d.visible}">${d.visible ? 'Hide' : 'Show'}</button>
               <button data-action="access"  data-id="${escapeHtml(d.id)}" data-title="${escapeHtml(d.title)}">Assign users</button>
-              <a href="/api/admin/datasets/${encodeURIComponent(d.id)}/export.zip" class="btn">Export ZIP</a>
+              <button data-action="export"  data-id="${escapeHtml(d.id)}" data-title="${escapeHtml(d.title)}">Export ZIP</button>
               <button data-action="delete"  data-id="${escapeHtml(d.id)}" class="btn-danger">Delete</button>
             </div>
           </div>
@@ -149,6 +149,10 @@
 
       list.querySelectorAll('button[data-action="access"]').forEach(btn => {
         btn.addEventListener('click', () => openAccessModal(btn.dataset.id, btn.dataset.title));
+      });
+
+      list.querySelectorAll('button[data-action="export"]').forEach(btn => {
+        btn.addEventListener('click', () => openExportModal(btn.dataset.id, btn.dataset.title));
       });
 
       list.querySelectorAll('button[data-action="delete"]').forEach(btn => {
@@ -240,6 +244,38 @@
       alert('Failed to save access: ' + err.message);
     }
   });
+
+  // ====== EXPORT MODAL ======
+  let exportDatasetId = null;
+
+  function openExportModal(datasetId, title) {
+    exportDatasetId = datasetId;
+    $('export-modal-title').textContent = `Export — ${title}`;
+    $('export-modal-user').innerHTML = '<option value="">All users</option>' +
+      allUsers.map(u => `<option value="${escapeHtml(u.id)}">${escapeHtml(u.username)}</option>`).join('');
+    $('export-modal-status').value = '';
+    updateExportLink();
+    $('export-modal').classList.add('open');
+  }
+
+  function updateExportLink() {
+    const userId = $('export-modal-user').value;
+    const status = $('export-modal-status').value;
+    const params = new URLSearchParams();
+    if (userId) params.set('user_id', userId);
+    if (status) params.set('status', status);
+    const qs = params.toString();
+    $('export-modal-download').href =
+      `/api/admin/datasets/${encodeURIComponent(exportDatasetId)}/export.zip${qs ? '?' + qs : ''}`;
+  }
+
+  $('export-modal-user').addEventListener('change', updateExportLink);
+  $('export-modal-status').addEventListener('change', updateExportLink);
+  $('export-modal-cancel').addEventListener('click', () => $('export-modal').classList.remove('open'));
+  $('export-modal').addEventListener('click', e => {
+    if (e.target === $('export-modal')) $('export-modal').classList.remove('open');
+  });
+  $('export-modal-download').addEventListener('click', () => $('export-modal').classList.remove('open'));
 
   // ====== USERS ======
   async function loadUsers() {

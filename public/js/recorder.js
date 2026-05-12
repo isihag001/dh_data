@@ -342,6 +342,13 @@
       sentences = dataset.sentences || [];
       if (sentences.length === 0) throw new Error('Dataset has no sentences.');
 
+      // Resume from first unrecorded sentence
+      const progRes  = await fetch('/api/recordings/progress?dataset_id=' + encodeURIComponent(datasetId));
+      const progData = await progRes.json();
+      const recorded = new Set(progData.recorded || []);
+      const resumeIdx = sentences.findIndex(s => !recorded.has(s.id));
+      currentIdx = resumeIdx === -1 ? sentences.length : resumeIdx;
+
       els.title.textContent = dataset.project.title;
       els.loading.style.display = 'none';
       els.ui.style.display = 'block';
