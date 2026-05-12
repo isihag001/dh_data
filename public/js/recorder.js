@@ -18,6 +18,8 @@
   let dataset = null;
   let sentences = [];
   let currentIdx = 0;
+  let recorded = new Set();        // sentence IDs already saved before this session
+  let savedThisSession = new Set(); // sentence IDs saved during this session
   let mediaRecorder = null;
   let chunks = [];
   let recording = false;
@@ -38,6 +40,7 @@
     ui: $('recorder-ui'),
     doneUi: $('done-ui'),
     currentUser: $('current-user'),
+    prevBtn: $('prev-btn'),
     title: $('dataset-title'),
     counter: $('counter'),
     progress: $('progress'),
@@ -92,8 +95,10 @@
       return;
     }
     const s = sentences[currentIdx];
-    els.counter.textContent = `Sentence ${currentIdx + 1} of ${sentences.length}`;
-    els.progress.style.width = ((currentIdx / sentences.length) * 100) + '%';
+    const pct = Math.round((currentIdx / sentences.length) * 100);
+    els.counter.textContent = `${currentIdx + 1} / ${sentences.length}  ·  ${pct}% done`;
+    els.progress.style.width = pct + '%';
+    els.prevBtn.disabled = (currentIdx === 0);
 
     const path = s.path || [];
     els.breadcrumb.innerHTML = path.length > 0
@@ -114,8 +119,9 @@
     audioUrl = null;
     els.playbackRow.style.display = 'none';
     els.textTranslation.value = '';
-    els.saveStatus.textContent = '';
-    els.saveStatus.style.color = '';
+    const alreadySaved = recorded.has(s.id) || savedThisSession.has(s.id);
+    els.saveStatus.textContent = alreadySaved ? '✓ Already saved — submitting again will update it' : '';
+    els.saveStatus.style.color  = alreadySaved ? 'var(--success)' : '';
     els.recStatus.textContent = 'tap to record';
     els.recStatus.style.color = '';
     els.nextBtn.disabled = false;
@@ -299,6 +305,7 @@
       else if (hasAudio) stats.audio_only++;
       else stats.text_only++;
 
+      savedThisSession.add(s.id);
       currentIdx++;
       renderSentence();
     } catch (err) {
@@ -306,6 +313,15 @@
       els.saveStatus.style.color = 'var(--warn)';
       els.nextBtn.disabled = false;
     }
+  }
+
+  function prev() {
+    if (currentIdx === 0) return;
+    if (recording) stopRecording();
+    audioBlob = null;
+    audioUrl  = null;
+    currentIdx--;
+    renderSentence();
   }
 
   function renderDone() {
@@ -345,7 +361,7 @@
       // Resume from first unrecorded sentence
       const progRes  = await fetch('/api/recordings/progress?dataset_id=' + encodeURIComponent(datasetId));
       const progData = await progRes.json();
-      const recorded = new Set(progData.recorded || []);
+      recorded = new Set(progData.recorded || []);
       const resumeIdx = sentences.findIndex(s => !recorded.has(s.id));
       currentIdx = resumeIdx === -1 ? sentences.length : resumeIdx;
 
@@ -354,6 +370,7 @@
       els.ui.style.display = 'block';
 
       els.recBtn.addEventListener('click', toggleRecord);
+      els.prevBtn.addEventListener('click', prev);
       els.nextBtn.addEventListener('click', next);
       els.playBtn.addEventListener('click', playback);
       els.rerecordBtn.addEventListener('click', rerecord);
