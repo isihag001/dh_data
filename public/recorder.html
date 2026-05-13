@@ -39,7 +39,7 @@
           <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg>
         </button>
         <canvas class="wave-canvas" id="wave" width="300" height="48"></canvas>
-        <div id="rec-status" style="font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); white-space: nowrap;">tap to record</div>
+        <div id="rec-status">tap to record</div>
       </div>
       <div class="playback-row" id="playback-row" style="display:none;">
         <button id="play-btn" type="button">▶ Play back</button>
@@ -56,10 +56,11 @@
       </div>
     </div>
 
-    <div class="row mt-1">
-      <span id="save-status" class="muted" style="font-size: 0.85rem;"></span>
-      <div class="spacer"></div>
-      <button id="next-btn" class="btn-primary" type="button">Next sentence →</button>
+    <div class="row mt-1" style="align-items:center; gap:0.6rem;">
+      <button id="prev-btn" type="button" disabled>← Back</button>
+      <span id="save-status" class="muted" style="font-size: 0.85rem; flex: 1; text-align: center;"></span>
+      <button id="update-btn" class="btn-primary" type="button" style="display:none;" disabled>Update →</button>
+      <button id="next-btn" class="btn-primary" type="button">Next →</button>
     </div>
   </div>
 
